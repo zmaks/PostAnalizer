@@ -10,6 +10,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  * Created by Maksim on 01.03.2017.
  */
 @Entity
+@Deprecated
 public class PostInfo {
     @Id
     @GeneratedValue(strategy = IDENTITY)

@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * Created by Maksim on 01.03.2017.
  */
+@Deprecated
 public class PostPK implements Serializable {
     private Integer postId;
     private Integer groupId;
