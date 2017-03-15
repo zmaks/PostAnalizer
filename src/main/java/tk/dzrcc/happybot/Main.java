@@ -2,7 +2,9 @@ package tk.dzrcc.happybot;
 
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
+import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.wall.WallpostFull;
+import com.vk.api.sdk.queries.groups.GroupField;
 import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -14,6 +16,7 @@ import tk.dzrcc.happybot.service.HourStatService;
 import tk.dzrcc.happybot.service.PostService;
 import tk.dzrcc.happybot.vk.VKService;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -33,12 +36,24 @@ public class Main {
     @Autowired
     static GroupService groupService;
 
-    @Autowired
-    static HourStatService hourStatService;
-
     public static void main(String[] args) {
         SpringApplication.run(Config.class);
 
+    }
+
+    private void loadGroups() throws ClientException, ApiException {
+       /* List<VkGroup> groups = new ArrayList<>();
+        groupRepository.findAll().forEach(groups::add);
+        List<String> groupIds = groups.stream()
+                .filter(x -> x.getName() != null)
+                .map(x -> (x.getGroupId()*-1)+"")
+                .collect(Collectors.toList());
+        List<GroupFull> response = vk.groups().getById(serviceActor).groupIds(groupIds).fields(GroupField.SCREEN_NAME).execute();
+        for (GroupFull group : response) {
+            VkGroup vkGroup = groupRepository.findOne(Integer.parseInt(group.getId()));
+            vkGroup.setName(group.getName());
+            groupRepository.save(vkGroup);
+        }*/
     }
 
     private static void loadNewPosts() throws ClientException, ApiException, InterruptedException {
@@ -63,31 +78,9 @@ public class Main {
                             && wallPost.getId().equals(x.getPostId()))
                         .findFirst()
                         .orElse(null);
-                updatePostAndGroup(wallPost, post);
+                postService.updatePost(post, wallPost);
             }
         }
-
-        for (Post post : notUpdatedPosts){
-
-        }
     }
-
-    private static void updatePostAndGroup(WallpostFull wallPost, Post post) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        Integer hour = calendar.get(Calendar.HOUR_OF_DAY) + 1;
-        VkGroup group = post.getGroup();
-        Integer likes = wallPost.getLikes().getCount();
-        Integer reposts = wallPost.getReposts().getCount();
-
-        HourStat hourStat = hourStatService.getByGroupIdAndHour(group.getGroupId(), hour);
-        HourStat defaultHourStat = hourStatService.getDefaultHourStat(hour);
-        if (hourStat != null){
-            Float likesRatio = likes.floatValue()/hourStat.getLikes();
-        }
-
-    }
-
-
 
 }

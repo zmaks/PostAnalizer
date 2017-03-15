@@ -32,6 +32,9 @@ public class Post {
     private Integer reposts;
 
     @Column
+    private Integer views;
+
+    @Column
     private Integer mark;
 
     @Column
@@ -103,5 +106,13 @@ public class Post {
 
     public void setMark(Integer mark) {
         this.mark = mark;
+    }
+
+    public Integer getViews() {
+        return views;
+    }
+
+    public void setViews(Integer views) {
+        this.views = views;
     }
 }
