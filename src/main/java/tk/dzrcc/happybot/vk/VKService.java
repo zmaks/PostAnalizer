@@ -6,14 +6,22 @@ import com.vk.api.sdk.client.actors.ServiceActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
+import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.wall.WallpostFull;
 import com.vk.api.sdk.objects.wall.responses.GetResponse;
+import com.vk.api.sdk.queries.groups.GroupField;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import tk.dzrcc.happybot.Main;
+import tk.dzrcc.happybot.entity.VkGroup;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -29,14 +37,28 @@ public class VKService {
     private ServiceActor serviceActor = null;
 
     @PostConstruct
-    void init() {
+    private void initVk(){
         transportClient = HttpTransportClient.getInstance();
         vk = new VkApiClient(transportClient);
-        serviceActor = new ServiceActor(5924600, "lza9CTf4vW3mgaN9WwfQ", "59ead9f559ead9f559294ee9e559b0bf0d559ea59ead9f5012d21b380b333575eaf6f97");
+        Properties properties = loadConfiguration();
+        Integer appId = Integer.parseInt(properties.getProperty("appId"));
+        String clientSecret = properties.getProperty("clientSecret");
+        String accessToken = properties.getProperty("accessToken");
+        serviceActor = new ServiceActor(appId, clientSecret, accessToken);
 
     }
 
+    private static Properties loadConfiguration() {
+        Properties properties = new Properties();
+        try (InputStream is = Main.class.getResourceAsStream("/config.properties")) {
+            properties.load(is);
+        } catch (IOException e) {
+            //LOG.error("Can't load properties file", e);
+            throw new IllegalStateException(e);
+        }
 
+        return properties;
+    }
 
 
     public WallpostFull getLastPostInGroup(Integer groupId) throws ClientException, ApiException, InterruptedException {
@@ -75,6 +97,16 @@ public class VKService {
             }
         }
         return null;
+    }
+
+    public List<GroupFull> loadGroups(List<String> groupIds) throws ClientException, ApiException {
+
+        List<GroupFull> response = vk.groups()
+                .getById(serviceActor)
+                .groupIds(groupIds)
+                .fields(GroupField.MEMBERS_COUNT).execute();
+        return response;
+
     }
 
     /*private void vkUpdater() {

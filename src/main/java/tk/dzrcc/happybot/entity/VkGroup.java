@@ -31,6 +31,9 @@ public class VkGroup {
     private Date addingDate;
 
     @Column
+    private Integer membersCount;
+
+    @Column
     private Boolean active = true;
 
     public VkGroup() {
@@ -98,5 +101,13 @@ public class VkGroup {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public Integer getMembersCount() {
+        return membersCount;
+    }
+
+    public void setMembersCount(Integer membersCount) {
+        this.membersCount = membersCount;
     }
 }

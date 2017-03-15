@@ -1,5 +1,6 @@
 package tk.dzrcc.happybot.service;
 
+import com.vk.api.sdk.objects.groups.GroupFull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,4 +51,16 @@ public class GroupService {
     }
 
 
+    public void saveGroups(List<GroupFull> groups) {
+        for (GroupFull group : groups) {
+            VkGroup vkGroup = groupRepository.findOne(Integer.parseInt(group.getId()));
+            if (vkGroup == null){
+                vkGroup = new VkGroup();
+                vkGroup.setGroupId(Integer.parseInt(group.getId()));
+            }
+            vkGroup.setName(group.getName());
+            vkGroup.setMembersCount(group.getMembersCount());
+            groupRepository.save(vkGroup);
+        }
+    }
 }

@@ -12,13 +12,15 @@ import tk.dzrcc.happybot.entity.HourStat;
 @Service
 public class PostsAnalyzeService {
 
+    private static final Short REPOSTS_MARK_WEIGHT = 5;
+    private static final Short LIKES_MARK_WEIGHT = 3;
+    private static final Integer MAX_MARK = 100;
+
     @Autowired
     HourStatService hourStatService;
 
     @Transactional
     public Integer calculateMark(Integer likes, Integer reposts, Integer views, Integer groupId) {
-        final Short repostsMarkWeight = 5;
-        final Short likesMarkWeight = 3;
 
         Integer hour = Utils.getCurrentHour();
         HourStat hourStat = hourStatService.getByGroupIdAndHour(groupId, hour);
@@ -27,19 +29,19 @@ public class PostsAnalyzeService {
         Float repostsRatio = reposts.floatValue()/views;
         if (hourStat == null){
             hourStatService.init(groupId, hour, likesRatio, repostsRatio);
-            return 100;
+            return MAX_MARK;
         }
-        Float markByLikes = (likesRatio/hourStat.getMaxLikesRatio())*100;
-        if (markByLikes > 100){
+        Float markByLikes = (likesRatio/hourStat.getMaxLikesRatio())*MAX_MARK;
+        if (markByLikes > MAX_MARK){
             hourStat.setMaxLikesRatio(likesRatio);
-            markByLikes = 100F;
+            markByLikes = MAX_MARK.floatValue();
         }
-        Float markByReposts = (repostsRatio/hourStat.getMaxRepostsRatio())*100;
-        if (markByReposts > 100) {
+        Float markByReposts = (repostsRatio/hourStat.getMaxRepostsRatio())*MAX_MARK;
+        if (markByReposts > MAX_MARK) {
             hourStat.setMaxRepostsRatio(repostsRatio);
-            markByReposts = 100F;
+            markByReposts = MAX_MARK.floatValue();
         }
         hourStatService.updateHourStat(hourStat, likesRatio, repostsRatio);
-        return (int)(markByLikes*likesMarkWeight + markByReposts*repostsMarkWeight) / (repostsMarkWeight + likesMarkWeight);
+        return (int)(markByLikes * LIKES_MARK_WEIGHT + markByReposts * REPOSTS_MARK_WEIGHT) / (REPOSTS_MARK_WEIGHT + LIKES_MARK_WEIGHT);
     }
 }

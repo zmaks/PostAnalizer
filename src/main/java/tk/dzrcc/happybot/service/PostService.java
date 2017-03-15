@@ -59,7 +59,7 @@ public class PostService {
             Post post = new Post();
             post.setPostId(wallPost.getId());
             post.setGroup(groupService.getById(wallPost.getOwnerId()));
-            post.setStartDate(new Date(wallPost.getDate()));
+            post.setStartDate(new Date(wallPost.getDate()*1000));
             return postRepository.save(post);
         } else
             return null;
@@ -67,7 +67,6 @@ public class PostService {
 
     @Transactional
     public List<Post> getNotUpdatedPosts() {
-
         return postRepository.findNotUpdatedPosts();
     }
 
