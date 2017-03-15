@@ -1,5 +1,6 @@
 package tk.dzrcc.happybot.service;
 
+import com.vk.api.sdk.objects.wall.WallpostFull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import tk.dzrcc.happybot.repository.PostInfoRepository;
 import tk.dzrcc.happybot.repository.PostRepository;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -22,6 +24,9 @@ public class PostService {
 
     @Autowired
     PostInfoRepository postInfoRepository;
+
+    @Autowired
+    GroupService groupService;
 
     @Transactional
     public Post savePost(Post post){
@@ -50,4 +55,19 @@ public class PostService {
         return postList.isEmpty() ? null : postList.get(0);
     }
 
+    public Post savePostByWallPost(WallpostFull wallPost) {
+        if (!postRepository.existsByValues(wallPost.getId(), wallPost.getOwnerId())) {
+            Post post = new Post();
+            post.setPostId(wallPost.getId());
+            post.setGroup(groupService.getById(wallPost.getOwnerId()));
+            post.setStartDate(new Date(wallPost.getDate()));
+            return postRepository.save(post);
+        } else
+            return null;
+    }
+
+    public List<Post> getNotUpdatedPosts() {
+
+        return postRepository.findNotUpdatedPosts();
+    }
 }

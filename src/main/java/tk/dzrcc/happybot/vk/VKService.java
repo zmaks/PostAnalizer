@@ -27,6 +27,7 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -122,6 +123,44 @@ public class VKService {
         }
 
 
+    }
+
+    public WallpostFull getLastPostInGroup(Integer groupId) throws ClientException, ApiException, InterruptedException {
+        for (int i = 0; i <= 3; i++) {
+            try {
+                WallpostFull newPost = null;
+                GetResponse response = vk.wall().get().ownerId(groupId).count(2).execute();
+                if (response.getItems().size() == 2) {
+                    newPost = response.getItems().get(0);
+                    if (newPost.getIsPinned() == 1)
+                        newPost = response.getItems().get(1);
+                } else {
+                    TimeUnit.SECONDS.sleep(1);
+                    continue;
+                }
+                TimeUnit.MICROSECONDS.sleep(500);
+                return newPost;
+            } catch (ClientException e) {
+                TimeUnit.SECONDS.sleep(1);
+                if (i == 3) throw e;
+            }
+        }
+        return null;
+    }
+
+    public List<WallpostFull> getPostsByIdList(List<String> idList) throws ClientException, ApiException, InterruptedException {
+        List<WallpostFull> wallPosts;
+        for (int i = 0; i <= 3; i++) {
+            try {
+                wallPosts = vk.wall().getById(idList).execute();
+                TimeUnit.MICROSECONDS.sleep(500);
+                return wallPosts;
+            } catch (ClientException e) {
+                if (i == 3) throw e;
+                TimeUnit.SECONDS.sleep(1);
+            }
+        }
+        return null;
     }
 
     /*private void vkUpdater() {
