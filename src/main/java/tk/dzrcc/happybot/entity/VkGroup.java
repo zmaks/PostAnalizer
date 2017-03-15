@@ -1,12 +1,14 @@
 package tk.dzrcc.happybot.entity;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.util.Date;
 
 /**
  * Created by mazh0416 on 3/14/2017.
  */
+@Entity
 public class VkGroup {
 
     @Id

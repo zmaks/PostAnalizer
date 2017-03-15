@@ -1,6 +1,7 @@
 package tk.dzrcc.happybot.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.dzrcc.happybot.Utils;
 import tk.dzrcc.happybot.entity.HourStat;
@@ -11,6 +12,7 @@ import java.util.List;
 /**
  * Created by Maksim on 15.03.2017.
  */
+@Service
 public class HourStatService {
     @Autowired
     HourStatRepository hourStatRepository;

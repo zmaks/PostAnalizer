@@ -1,5 +1,7 @@
 package tk.dzrcc.happybot.entity;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
@@ -8,23 +10,31 @@ import static javax.persistence.GenerationType.IDENTITY;
 /**
  * Created by Maksim on 15.03.2017.
  */
+@Entity
 public class HourStat {
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Integer id;
 
+    @Column
     private Float avgLikesRatio;
 
+    @Column
     private Float avgRepostsRatio;
 
+    @Column
     private Float maxLikesRatio;
 
+    @Column
     private Float maxRepostsRatio;
 
+    @Column
     private Integer groupId;
 
+    @Column
     private Integer hour;
 
+    @Column
     private Integer count;
 
     public Integer getId() {
