@@ -4,7 +4,9 @@ import com.vk.api.sdk.objects.wall.WallpostFull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tk.dzrcc.happybot.Utils;
 import tk.dzrcc.happybot.entity.*;
+import tk.dzrcc.happybot.exceptions.UpdaterException;
 import tk.dzrcc.happybot.repository.PostRepository;
 
 import java.util.ArrayList;
@@ -49,7 +51,7 @@ public class PostService {
 
     @Transactional
     public Post findByPostAndGroup(Integer postId, Integer groupId){
-        List<Post> postList = postRepository.findByPostIdAndGroupId(postId, groupId);
+        List<Post> postList = postRepository.findByPostIdAndGroupGroupId(postId, groupId);
         return postList.isEmpty() ? null : postList.get(0);
     }
 
@@ -59,7 +61,7 @@ public class PostService {
             Post post = new Post();
             post.setPostId(wallPost.getId());
             post.setGroup(groupService.getById(wallPost.getOwnerId()));
-            post.setStartDate(new Date(wallPost.getDate()*1000));
+            post.setStartDate(new Date((long) wallPost.getDate()*1000));
             return postRepository.save(post);
         } else
             return null;
@@ -74,14 +76,25 @@ public class PostService {
     public Post updatePost(Post post, WallpostFull wallPost) {
         Integer likes = wallPost.getLikes().getCount();
         Integer reposts = wallPost.getReposts().getCount();
-        Integer views = (likes * ((new Random()).nextInt(200)+2400))/100;//wallPost.getViews();
-        Integer mark = postsAnalyzeService.calculateMark(likes, reposts, views, wallPost.getOwnerId());
+        Integer views = wallPost.getViews().getCount();
+        Integer hour = Utils.getCurrentHour();
+        Integer mark = postsAnalyzeService.calculateMark(likes, reposts, views, wallPost.getOwnerId(), hour);
         groupService.updateGroup(post.getGroup(), likes, reposts, views);
 
         post.setLikes(likes);
         post.setReposts(reposts);
         post.setViews(views);
         post.setMark(mark);
+        post.setHour(hour);
         return postRepository.save(post);
+    }
+
+    @Transactional
+    public Post updatePost(WallpostFull wallPost) throws UpdaterException {
+        List<Post> posts = postRepository.findByPostIdAndGroupGroupId(wallPost.getId(), wallPost.getOwnerId());
+        if (posts.isEmpty()) {
+            throw new UpdaterException("Post " + wallPost.getOwnerId()+ "_" + wallPost.getId() + "doesn't exist");
+        }
+        return updatePost(posts.get(0), wallPost);
     }
 }

@@ -37,26 +37,29 @@ public class GroupService {
     @Transactional
     public VkGroup updateGroup(VkGroup group, Integer likes, Integer reposts, Integer views) {
         Integer count = group.getCount();
-        if (count.equals(0)) {
+        if (count == null) {
             group.setAvgLikes(likes);
             group.setAvgShares(reposts);
             group.setAvgViews(views);
+            group.setCount(1);
         } else {
             group.setAvgLikes(Utils.calculateNewAvgValue(group.getAvgLikes(), likes, count));
             group.setAvgShares(Utils.calculateNewAvgValue(group.getAvgShares(), reposts, count));
             group.setAvgViews(Utils.calculateNewAvgValue(group.getAvgViews(), views, count));
+            group.setCount(count+1);
         }
-        group.setCount(count+1);
+
         return groupRepository.save(group);
     }
 
 
     public void saveGroups(List<GroupFull> groups) {
         for (GroupFull group : groups) {
-            VkGroup vkGroup = groupRepository.findOne(Integer.parseInt(group.getId()));
+            Integer groupId = Integer.parseInt(group.getId())*-1;
+            VkGroup vkGroup = groupRepository.findOne(groupId);
             if (vkGroup == null){
                 vkGroup = new VkGroup();
-                vkGroup.setGroupId(Integer.parseInt(group.getId()));
+                vkGroup.setGroupId(groupId);
             }
             vkGroup.setName(group.getName());
             vkGroup.setMembersCount(group.getMembersCount());

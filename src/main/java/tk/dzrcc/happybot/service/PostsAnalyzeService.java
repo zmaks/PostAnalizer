@@ -20,9 +20,8 @@ public class PostsAnalyzeService {
     HourStatService hourStatService;
 
     @Transactional
-    public Integer calculateMark(Integer likes, Integer reposts, Integer views, Integer groupId) {
+    public Integer calculateMark(Integer likes, Integer reposts, Integer views, Integer groupId, Integer hour) {
 
-        Integer hour = Utils.getCurrentHour();
         HourStat hourStat = hourStatService.getByGroupIdAndHour(groupId, hour);
 
         Float likesRatio = likes.floatValue()/views;

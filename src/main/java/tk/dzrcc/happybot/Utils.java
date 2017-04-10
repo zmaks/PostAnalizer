@@ -7,6 +7,9 @@ import java.util.Date;
  * Created by mazh0416 on 3/15/2017.
  */
 public class Utils {
+    private static final String HREF_PATTERN = "https://vk.com/public%s?w=wall-%s_%s";
+
+
     public static Integer getCurrentHour(){
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
@@ -19,5 +22,10 @@ public class Utils {
 
     public static Integer calculateNewAvgValue(Integer avgValue, Integer value, Integer count) {
         return (avgValue*count+value)/(count+1);
+    }
+
+    public static String buildPostLink(Integer ownerId, Integer id) {
+        ownerId = Math.abs(ownerId);
+        return String.format(HREF_PATTERN, ownerId, ownerId, id);
     }
 }

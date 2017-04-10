@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="60">
+    <Properties>
+        <Property name="path">logs</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console-Appender" target="SYSTEM_OUT">
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{dd.MM HH:mm:ss.SSS} [%t] %c{1} | %msg%n
+                </pattern>>
+            </PatternLayout>
+        </Console>
+        <File name="Bot-Appender" fileName="${path}/bot_info.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{dd.MM HH:mm:ss.SSS} %c{1} | %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+        <File name="App-Appender" fileName="${path}/app.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{dd.MM HH:mm:ss.SSS} [%t] %c{1} | %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+        <File name="VK-Appender" fileName="${path}/vk.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{dd.MM HH:mm:ss.SSS} %c{1} | %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Logger name="tk.dzrcc.happybot" level="info" additivity="false">
+            <AppenderRef ref="Bot-Appender"/>
+            <AppenderRef ref="Console-Appender"/>
+            <AppenderRef ref="VK-Appender"/>
+        </Logger>
+        <Logger name="com.vk.api.sdk" level="info" additivity="true">
+            <AppenderRef ref="VK-Appender"/>
+        </Logger>
+        <Root additivity="true" level="info">
+            <AppenderRef ref="App-Appender"/>
+            <AppenderRef ref="Console-Appender"/>
+        </Root>
+    </Loggers>
+</Configuration>

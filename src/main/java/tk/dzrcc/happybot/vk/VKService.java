@@ -10,10 +10,13 @@ import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.wall.WallpostFull;
 import com.vk.api.sdk.objects.wall.responses.GetResponse;
 import com.vk.api.sdk.queries.groups.GroupField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import tk.dzrcc.happybot.Main;
 import tk.dzrcc.happybot.entity.VkGroup;
+import tk.dzrcc.happybot.exceptions.UpdaterException;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -30,6 +33,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class VKService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VKService.class);
 
     private TransportClient transportClient;
     private VkApiClient vk;
@@ -61,14 +66,18 @@ public class VKService {
     }
 
 
-    public WallpostFull getLastPostInGroup(Integer groupId) throws ClientException, ApiException, InterruptedException {
+    public WallpostFull getLastPostInGroup(Integer groupId) throws ClientException, ApiException, InterruptedException, UpdaterException {
         for (int i = 0; i <= 3; i++) {
             try {
                 WallpostFull newPost = null;
-                GetResponse response = vk.wall().get().ownerId(groupId).count(2).execute();
+                GetResponse response = vk.wall().get(serviceActor).ownerId(groupId).count(2).execute();
+                List<WallpostFull> wallpostsFull = response.getItems();
+                if (wallpostsFull.isEmpty()) {
+                    throw new UpdaterException("Error during loading posts. List is empty in group {}" + groupId);
+                }
                 if (response.getItems().size() == 2) {
                     newPost = response.getItems().get(0);
-                    if (newPost.getIsPinned() == 1)
+                    if (newPost.getIsPinned() != null && newPost.getIsPinned() == 1)
                         newPost = response.getItems().get(1);
                 } else {
                     TimeUnit.SECONDS.sleep(1);
@@ -88,7 +97,7 @@ public class VKService {
         List<WallpostFull> wallPosts;
         for (int i = 0; i <= 3; i++) {
             try {
-                wallPosts = vk.wall().getById(idList).execute();
+                wallPosts = vk.wall().getById(serviceActor, idList).execute();
                 TimeUnit.MICROSECONDS.sleep(500);
                 return wallPosts;
             } catch (ClientException e) {
