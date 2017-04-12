@@ -1,5 +1,7 @@
 package tk.dzrcc.happybot.service;
 
+import com.vk.api.sdk.objects.wall.PostType;
+import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
 import com.vk.api.sdk.objects.wall.WallpostFull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,6 +76,13 @@ public class PostService {
 
     @Transactional
     public Post updatePost(Post post, WallpostFull wallPost) {
+        if(wallPost == null || !postsAnalyzeService.isCorrectPost(wallPost)){
+            postRepository.delete(post);
+            return null;
+        }
+        if (wallPost.getLikes() == null || wallPost.getReposts() == null || wallPost.getViews() == null) {
+            return null;
+        }
         Integer likes = wallPost.getLikes().getCount();
         Integer reposts = wallPost.getReposts().getCount();
         Integer views = wallPost.getViews().getCount();

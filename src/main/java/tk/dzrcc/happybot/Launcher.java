@@ -141,7 +141,7 @@ public class Launcher {
             LOGGER.info("There are no posts loaded from VK. Stop updating.\n\n\n");
             return;
         }
-        LOGGER.info(String.format("There are {} posts loaded from VK", wallPosts.size()));
+        LOGGER.info("There are {} posts loaded from VK", wallPosts.size());
         for (WallpostFull wallPost : wallPosts){
             /*Post post = notUpdatedPosts.stream()
                     .filter(x -> Math.abs(wallPost.getOwnerId()) == Math.abs(x.getGroup().getGroupId())

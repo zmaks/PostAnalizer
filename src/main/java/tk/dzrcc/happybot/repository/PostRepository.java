@@ -17,7 +17,8 @@ public interface PostRepository extends CrudRepository<Post, Long> {
 
     List<Post> findByPostIdAndGroupGroupId(Integer postId, Integer groupId);
 
-    @Query(value = "SELECT * FROM Post WHERE start_date < (CURRENT_TIMESTAMP - INTERVAL '1 hour') and mark is null", nativeQuery = true)
+    @Query(value = "SELECT * FROM Post WHERE start_date < (CURRENT_TIMESTAMP - INTERVAL '1 hour') and start_date > (CURRENT_TIMESTAMP - INTERVAL '1 hour 5 minutes') and mark is null", nativeQuery = true)
     List<Post> findNotUpdatedPosts();
+
     List<Post> findByMarkIsNull();
 }
