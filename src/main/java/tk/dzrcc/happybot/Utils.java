@@ -1,5 +1,8 @@
 package tk.dzrcc.happybot;
 
+import com.vk.api.sdk.objects.wall.WallpostFull;
+import tk.dzrcc.happybot.entity.Post;
+
 import java.util.Calendar;
 import java.util.Date;
 
@@ -24,8 +27,16 @@ public class Utils {
         return (avgValue*count+value)/(count+1);
     }
 
-    public static String buildPostLink(Integer ownerId, Integer id) {
-        ownerId = Math.abs(ownerId);
-        return String.format(HREF_PATTERN, ownerId, ownerId, id);
+    public static String buildPostLink(Post post) {
+        return buildPostLink(post.getGroup().getGroupId(), post.getPostId());
+    }
+
+    public static String buildPostLink(WallpostFull wallPost) {
+        return buildPostLink(wallPost.getOwnerId(), wallPost.getId());
+    }
+
+    private static String buildPostLink(Integer groupId, Integer postId){
+        groupId = Math.abs(groupId);
+        return String.format(HREF_PATTERN, groupId, groupId, postId);
     }
 }

@@ -28,6 +28,16 @@ public class HourStatService {
     }
 
     @Transactional
+    public HourStat getByHour(Integer hour) {
+        List<HourStat> list = hourStatRepository.findByHour(hour);
+        if (list.isEmpty()) {
+            return null;
+        } else {
+            return list.get(0);
+        }
+    }
+
+    @Transactional
     public HourStat updateHourStat(HourStat hourStat, Float likesRatio, Float repostsRatio) {
         Integer count = hourStat.getCount();
         hourStat.setAvgLikesRatio(Utils.calculateNewAvgValue(
@@ -47,7 +57,7 @@ public class HourStatService {
     @Transactional
     public HourStat init(Integer groupId, Integer hour, Float likesRatio, Float repostsRatio) {
         HourStat hourStat = new HourStat();
-        hourStat.setGroupId(groupId);
+        //hourStat.setGroupId(groupId);
         hourStat.setHour(hour);
         hourStat.setAvgLikesRatio(likesRatio);
         hourStat.setMaxLikesRatio(likesRatio);

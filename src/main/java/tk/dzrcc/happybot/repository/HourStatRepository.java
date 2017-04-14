@@ -12,4 +12,5 @@ import java.util.List;
 public interface HourStatRepository extends CrudRepository<HourStat, Integer> {
     List<HourStat> findByGroupIdAndHour(Integer groupId, Integer hour);
 
+    List<HourStat> findByHour(Integer hour);
 }

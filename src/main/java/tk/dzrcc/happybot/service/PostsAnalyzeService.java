@@ -18,6 +18,7 @@ import java.util.List;
  */
 @Service
 public class PostsAnalyzeService {
+    private static final Integer MIN_LIKES_COUNT = 300;
     private static Logger LOGGER = LoggerFactory.getLogger(PostsAnalyzeService.class);
 
     private static final Short REPOSTS_MARK_WEIGHT = 5;
@@ -31,7 +32,8 @@ public class PostsAnalyzeService {
     @Transactional
     public Integer calculateMark(Integer likes, Integer reposts, Integer views, Integer groupId, Integer hour) {
 
-        HourStat hourStat = hourStatService.getByGroupIdAndHour(groupId, hour);
+        //HourStat hourStat = hourStatService.getByGroupIdAndHour(groupId, hour);
+        HourStat hourStat = hourStatService.getByHour(hour);
 
         Float likesRatio = likes.floatValue()/views;
         Float repostsRatio = reposts.floatValue()/views;
@@ -44,14 +46,17 @@ public class PostsAnalyzeService {
         Float markByLikes = (likesRatio/hourStat.getMaxLikesRatio())*MAX_MARK;
         if (markByLikes > MAX_MARK){
             hourStat.setMaxLikesRatio(likesRatio);
-            markByLikes = MAX_MARK.floatValue();
+            //markByLikes = MAX_MARK.floatValue();
         }
 
         Float markByReposts = (repostsRatio/hourStat.getMaxRepostsRatio())*MAX_MARK;
-        if (markByReposts > MAX_MARK) {
+        if (markByReposts > MAX_MARK){
             hourStat.setMaxRepostsRatio(repostsRatio);
-            markByReposts = MAX_MARK.floatValue();
+            //markByReposts = MAX_MARK.floatValue();
         }
+
+//        Integer mark = (int)(markByLikes * LIKES_MARK_WEIGHT + markByReposts * REPOSTS_MARK_WEIGHT) / (REPOSTS_MARK_WEIGHT + LIKES_MARK_WEIGHT);
+
 
         hourStatService.updateHourStat(hourStat, likesRatio, repostsRatio);
         return (int)(markByLikes * LIKES_MARK_WEIGHT + markByReposts * REPOSTS_MARK_WEIGHT) / (REPOSTS_MARK_WEIGHT + LIKES_MARK_WEIGHT);
@@ -59,6 +64,10 @@ public class PostsAnalyzeService {
 
     public boolean isCorrectPost(WallpostFull wallPost) {
         // Has repost
+        if (wallPost.getLikes() == null || wallPost.getLikes().getCount() < MIN_LIKES_COUNT) {
+            LOGGER.info("Post is incorrect. Little amount of likes: {}", wallPost.getLikes().getCount());
+            return false;
+        }
         if (wallPost.getCopyHistory() != null) {
             LOGGER.info("Post is incorrect. It's a repost.");
             return false;
@@ -75,12 +84,19 @@ public class PostsAnalyzeService {
         List<WallpostAttachment> attachments = wallPost.getAttachments();
         if (attachments != null && !attachments.isEmpty()) {
             for (WallpostAttachment attachment : attachments){
-                if (!(attachment.getType().equals(WallpostAttachmentType.PHOTO) || attachment.getType().equals(WallpostAttachmentType.POSTED_PHOTO) || attachment.getType().equals(WallpostAttachmentType.LINK))){
+                if (!(attachment.getType().equals(WallpostAttachmentType.PHOTO) ||
+                        attachment.getType().equals(WallpostAttachmentType.POSTED_PHOTO) ||
+                        attachment.getType().equals(WallpostAttachmentType.DOC) ||
+                        attachment.getType().equals(WallpostAttachmentType.LINK))){
                     LOGGER.info("Post is incorrect. Wrong attachment found: {}", attachment.getType().getValue());
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    public Integer getMaxMark(){
+        return MAX_MARK;
     }
 }

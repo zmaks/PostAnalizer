@@ -115,7 +115,7 @@ public class Launcher {
             if (wallPost != null) {
                 if (!postService.exists(wallPost.getId(), wallPost.getOwnerId())) {
                     postService.savePostByWallPost(wallPost);
-                    LOGGER.info("New post is added: "+ Utils.buildPostLink(wallPost.getOwnerId(), wallPost.getId()));
+                    LOGGER.info("New post is added: {}", Utils.buildPostLink(wallPost));
                 }
             }
         }
@@ -126,21 +126,22 @@ public class Launcher {
         LOGGER.info("-------------------------------------- Start updating posts -------------");
         List<Post> notUpdatedPosts = postService.getNotUpdatedPosts();
         if (notUpdatedPosts.isEmpty()){
-            LOGGER.info("There are no posts for update. Stop updating.\n\n\n");
+            LOGGER.info("No posts for update. Stop updating.\n\n\n");
             return;
         }
-        LOGGER.info(String.format("There are %s posts for update: ", notUpdatedPosts.size()));
+        LOGGER.info("{} posts for update: ", notUpdatedPosts.size());
         notUpdatedPosts.stream()
-                .map(x -> "\n\t"+Utils.buildPostLink(x.getGroup().getGroupId(), x.getPostId()))
+                .map(x -> "\n\t"+Utils.buildPostLink(x))
                 .forEach(LOGGER::info);
         List<String> idList = notUpdatedPosts.stream()
                 .map(x -> x.getGroup().getGroupId()+"_"+x.getPostId())
                 .collect(Collectors.toList());
         List<WallpostFull> wallPosts = vkService.getPostsByIdList(idList);
         if (wallPosts.isEmpty()) {
-            LOGGER.info("There are no posts loaded from VK. Stop updating.\n\n\n");
+            LOGGER.info("No posts loaded from VK. Stop updating.\n\n\n");
             return;
         }
+        List<Post> updatedPosts = new ArrayList<>();
         LOGGER.info("There are {} posts loaded from VK", wallPosts.size());
         for (WallpostFull wallPost : wallPosts){
             /*Post post = notUpdatedPosts.stream()
@@ -148,7 +149,15 @@ public class Launcher {
                         && wallPost.getId().equals(x.getPostId()))
                     .findFirst()
                     .orElse(null);*/
-            postService.updatePost(wallPost);
+            Post updated = postService.updatePost(wallPost);
+            if (updated != null) updatedPosts.add(updated);
+        }
+        List<Post> postsForDelete = notUpdatedPosts.stream()
+                .filter(x -> !updatedPosts.contains(x))
+                .collect(Collectors.toList());
+        postsForDelete.forEach(x -> LOGGER.info("Deleted post: {}", Utils.buildPostLink(x)));
+        if (postsForDelete != null && !postsForDelete.isEmpty()) {
+            postService.deletePosts(postsForDelete);
         }
         LOGGER.info("-------------------------------------- Stop updating posts -------------\n\n\n");
     }

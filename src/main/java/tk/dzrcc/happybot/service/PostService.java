@@ -1,7 +1,5 @@
 package tk.dzrcc.happybot.service;
 
-import com.vk.api.sdk.objects.wall.PostType;
-import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
 import com.vk.api.sdk.objects.wall.WallpostFull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +12,6 @@ import tk.dzrcc.happybot.repository.PostRepository;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Created by Maksim on 01.03.2017.
@@ -23,7 +20,6 @@ import java.util.Random;
 public class PostService {
     @Autowired
     PostRepository postRepository;
-
 
     @Autowired
     GroupService groupService;
@@ -59,7 +55,7 @@ public class PostService {
 
     @Transactional
     public Post savePostByWallPost(WallpostFull wallPost) {
-        if (!postRepository.existsByValues(wallPost.getId(), wallPost.getOwnerId())) {
+        if (wallPost != null && !postRepository.existsByValues(wallPost.getId(), wallPost.getOwnerId())) {
             Post post = new Post();
             post.setPostId(wallPost.getId());
             post.setGroup(groupService.getById(wallPost.getOwnerId()));
@@ -90,6 +86,11 @@ public class PostService {
         Integer mark = postsAnalyzeService.calculateMark(likes, reposts, views, wallPost.getOwnerId(), hour);
         groupService.updateGroup(post.getGroup(), likes, reposts, views);
 
+        if (mark > postsAnalyzeService.getMaxMark()){
+            // TODO: 14.04.2017  
+            postRepository.findByHourAndMarkIsNotNull(hour);
+        }
+
         post.setLikes(likes);
         post.setReposts(reposts);
         post.setViews(views);
@@ -105,5 +106,12 @@ public class PostService {
             throw new UpdaterException("Post " + wallPost.getOwnerId()+ "_" + wallPost.getId() + "doesn't exist");
         }
         return updatePost(posts.get(0), wallPost);
+    }
+
+    public void deletePosts(List<Post> postsForDelete) {
+        if (postsForDelete == null || postsForDelete.isEmpty()) return;
+        for (Post post : postsForDelete){
+            postRepository.delete(post);
+        }
     }
 }

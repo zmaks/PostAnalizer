@@ -1,5 +1,6 @@
 package tk.dzrcc.happybot.repository;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import tk.dzrcc.happybot.entity.Post;
@@ -20,5 +21,11 @@ public interface PostRepository extends CrudRepository<Post, Long> {
     @Query(value = "SELECT * FROM Post WHERE start_date < (CURRENT_TIMESTAMP - INTERVAL '1 hour') and start_date > (CURRENT_TIMESTAMP - INTERVAL '1 hour 5 minutes') and mark is null", nativeQuery = true)
     List<Post> findNotUpdatedPosts();
 
+    @Modifying
+    @Query("update Post p set p.mark = :mark where p.hour = :hour")
+    List<Post> setMarkByHour(Integer hour, Integer mark);
+
     List<Post> findByMarkIsNull();
+
+    Post findByHourAndMarkIsNotNull(Integer hour);
 }

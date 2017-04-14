@@ -112,4 +112,19 @@ public class VkGroup {
     public void setMembersCount(Integer membersCount) {
         this.membersCount = membersCount;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VkGroup)) return false;
+
+        VkGroup group = (VkGroup) o;
+
+        return getGroupId() != null ? getGroupId().equals(group.getGroupId()) : group.getGroupId() == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return getGroupId() != null ? getGroupId().hashCode() : 0;
+    }
 }

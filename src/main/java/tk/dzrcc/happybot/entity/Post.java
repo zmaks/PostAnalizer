@@ -115,4 +115,22 @@ public class Post {
     public void setViews(Integer views) {
         this.views = views;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Post)) return false;
+
+        Post post = (Post) o;
+
+        if (getPostId() != null ? !getPostId().equals(post.getPostId()) : post.getPostId() != null) return false;
+        return getGroup() != null ? getGroup().equals(post.getGroup()) : post.getGroup() == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getPostId() != null ? getPostId().hashCode() : 0;
+        result = 31 * result + (getGroup() != null ? getGroup().hashCode() : 0);
+        return result;
+    }
 }
