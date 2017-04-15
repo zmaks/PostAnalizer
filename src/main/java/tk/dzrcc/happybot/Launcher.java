@@ -16,14 +16,11 @@ import tk.dzrcc.happybot.service.PostService;
 import tk.dzrcc.happybot.vk.VKService;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 
 /**
@@ -51,11 +48,17 @@ public class Launcher {
             loadGroups();
             LOGGER.info("Groups are loaded");
             TimeUnit.MICROSECONDS.sleep(500);
+            loadNewPosts();
+            int updateCounter = 1;
             while (true) {
-                loadNewPosts();
-                TimeUnit.SECONDS.sleep(30);
+
+                TimeUnit.SECONDS.sleep(60);
+                if (updateCounter % 53 == 0) {
+                    LOGGER.info("Updates count is {}", updateCounter);
+                    loadNewPosts();
+                }
                 updateLoadedPosts();
-                TimeUnit.SECONDS.sleep(30);
+                updateCounter++;
             }
         } catch (InterruptedException | ApiException | ClientException | UpdaterException e) {
             e.printStackTrace();
@@ -105,19 +108,31 @@ public class Launcher {
         List<Integer> groupIds = groupService.getAllGroupsIds();
         LOGGER.info(String.format("There are %s group in handling",  groupIds.size()));
         for (Integer groupId : groupIds){
-            WallpostFull wallPost = null;
+            //WallpostFull wallPost = null;
+            Date date = new Date();
             try {
-                wallPost = vkService.getLastPostInGroup(groupId);
+                List<WallpostFull> wallPosts = vkService.getLastPostsInGroup(groupId);
+                for (WallpostFull wallPost : wallPosts){
+                    if (wallPost.getIsPinned() != null && wallPost.getIsPinned() == 1) continue;
+                    LOGGER.info("Date = {}", date.getTime());
+                    LOGGER.info("S Date = {}", wallPost.getDate());
+                    Long division = date.getTime() - wallPost.getDate()*1000L;
+                    LOGGER.info("Divivsion = {}", division);
+                    if (!postService.exists(wallPost.getId(), wallPost.getOwnerId()) && division < 59*60*1000) {
+                        postService.savePostByWallPost(wallPost);
+                        LOGGER.info("New post is added: {}", Utils.buildPostLink(wallPost));
+                    }
+                }
             } catch (UpdaterException e) {
                 LOGGER.error(e.getMessage(), e);
                 continue;
             }
-            if (wallPost != null) {
+            /*if (wallPost != null) {
                 if (!postService.exists(wallPost.getId(), wallPost.getOwnerId())) {
                     postService.savePostByWallPost(wallPost);
                     LOGGER.info("New post is added: {}", Utils.buildPostLink(wallPost));
                 }
-            }
+            }*/
         }
         LOGGER.info("-------------------------------------- Stop loading new posts -------------\n\n\n");
     }
@@ -141,7 +156,6 @@ public class Launcher {
             LOGGER.info("No posts loaded from VK. Stop updating.\n\n\n");
             return;
         }
-        List<Post> updatedPosts = new ArrayList<>();
         LOGGER.info("There are {} posts loaded from VK", wallPosts.size());
         for (WallpostFull wallPost : wallPosts){
             /*Post post = notUpdatedPosts.stream()
@@ -150,14 +164,11 @@ public class Launcher {
                     .findFirst()
                     .orElse(null);*/
             Post updated = postService.updatePost(wallPost);
-            if (updated != null) updatedPosts.add(updated);
+            if (updated != null) notUpdatedPosts.remove(updated);
         }
-        List<Post> postsForDelete = notUpdatedPosts.stream()
-                .filter(x -> !updatedPosts.contains(x))
-                .collect(Collectors.toList());
-        postsForDelete.forEach(x -> LOGGER.info("Deleted post: {}", Utils.buildPostLink(x)));
-        if (postsForDelete != null && !postsForDelete.isEmpty()) {
-            postService.deletePosts(postsForDelete);
+        notUpdatedPosts.forEach(x -> LOGGER.info("Deleted post: {}", Utils.buildPostLink(x)));
+        if (!notUpdatedPosts.isEmpty()) {
+            postService.deletePosts(notUpdatedPosts);
         }
         LOGGER.info("-------------------------------------- Stop updating posts -------------\n\n\n");
     }

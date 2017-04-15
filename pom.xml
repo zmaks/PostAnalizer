@@ -81,7 +81,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <finalName>happybot</finalName>
+                    <finalName>happybot2</finalName>
                 </configuration>
             </plugin>
             <plugin>

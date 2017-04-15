@@ -1,6 +1,8 @@
 package tk.dzrcc.happybot.service;
 
 import com.vk.api.sdk.objects.wall.WallpostFull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,9 @@ import java.util.List;
  */
 @Service
 public class PostService {
+    private static Logger LOGGER = LoggerFactory.getLogger(PostService.class);
+
+
     @Autowired
     PostRepository postRepository;
 
@@ -73,7 +78,8 @@ public class PostService {
     @Transactional
     public Post updatePost(Post post, WallpostFull wallPost) {
         if(wallPost == null || !postsAnalyzeService.isCorrectPost(wallPost)){
-            postRepository.delete(post);
+            LOGGER.debug("Deleting post {}", post.getPostId());
+            //postRepository.delete(post.getId());
             return null;
         }
         if (wallPost.getLikes() == null || wallPost.getReposts() == null || wallPost.getViews() == null) {
@@ -84,11 +90,12 @@ public class PostService {
         Integer views = wallPost.getViews().getCount();
         Integer hour = Utils.getCurrentHour();
         Integer mark = postsAnalyzeService.calculateMark(likes, reposts, views, wallPost.getOwnerId(), hour);
+        Integer maxMark = postsAnalyzeService.getMaxMark();
         groupService.updateGroup(post.getGroup(), likes, reposts, views);
 
-        if (mark > postsAnalyzeService.getMaxMark()){
-            // TODO: 14.04.2017  
-            postRepository.findByHourAndMarkIsNotNull(hour);
+        if (mark > maxMark){
+            postRepository.updateOldMarksInHour(hour, mark, maxMark);
+            mark = maxMark;
         }
 
         post.setLikes(likes);
@@ -101,6 +108,9 @@ public class PostService {
 
     @Transactional
     public Post updatePost(WallpostFull wallPost) throws UpdaterException {
+        if (wallPost == null) {
+            return null;
+        }
         List<Post> posts = postRepository.findByPostIdAndGroupGroupId(wallPost.getId(), wallPost.getOwnerId());
         if (posts.isEmpty()) {
             throw new UpdaterException("Post " + wallPost.getOwnerId()+ "_" + wallPost.getId() + "doesn't exist");
@@ -111,7 +121,9 @@ public class PostService {
     public void deletePosts(List<Post> postsForDelete) {
         if (postsForDelete == null || postsForDelete.isEmpty()) return;
         for (Post post : postsForDelete){
-            postRepository.delete(post);
+            LOGGER.debug("Deleting post {}", post.getPostId());
+            postRepository.delete(post.getId());
+
         }
     }
 }

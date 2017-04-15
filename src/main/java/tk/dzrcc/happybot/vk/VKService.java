@@ -49,6 +49,7 @@ public class VKService {
         Integer appId = Integer.parseInt(properties.getProperty("appId"));
         String clientSecret = properties.getProperty("clientSecret");
         String accessToken = properties.getProperty("accessToken");
+        LOGGER.info("{} {} {}",appId, clientSecret, accessToken);
         serviceActor = new ServiceActor(appId, clientSecret, accessToken);
 
     }
@@ -66,27 +67,30 @@ public class VKService {
     }
 
 
-    public WallpostFull getLastPostInGroup(Integer groupId) throws ClientException, ApiException, InterruptedException, UpdaterException {
+    public List<WallpostFull> getLastPostsInGroup(Integer groupId) throws ClientException, ApiException, InterruptedException, UpdaterException {
         for (int i = 0; i <= 3; i++) {
             try {
                 WallpostFull newPost = null;
-                GetResponse response = vk.wall().get(serviceActor).ownerId(groupId).count(2).execute();
+                GetResponse response = vk.wall().get(serviceActor).ownerId(groupId).count(8).execute();
                 List<WallpostFull> wallpostsFull = response.getItems();
                 if (wallpostsFull.isEmpty()) {
                     throw new UpdaterException("Error during loading posts. List is empty in group {}" + groupId);
                 }
-                if (response.getItems().size() == 2) {
+                /*if (response.getItems().size() == 2) {
                     newPost = response.getItems().get(0);
                     if (newPost.getIsPinned() != null && newPost.getIsPinned() == 1)
                         newPost = response.getItems().get(1);
                 } else {
-                    TimeUnit.SECONDS.sleep(1);
+                    //TimeUnit.SECONDS.sleep(1);
+                    Thread.sleep(1000);
                     continue;
-                }
-                TimeUnit.MICROSECONDS.sleep(330);
-                return newPost;
-            } catch (ClientException e) {
-                TimeUnit.SECONDS.sleep(1);
+                }*/
+                //TimeUnit.MICROSECONDS.sleep(330);
+                Thread.sleep(500);
+                return wallpostsFull;
+            } catch (ClientException | UpdaterException e) {
+                //TimeUnit.SECONDS.sleep(1);
+                Thread.sleep(1000*i);
                 if (i == 3) throw e;
             }
         }
@@ -98,11 +102,13 @@ public class VKService {
         for (int i = 0; i <= 3; i++) {
             try {
                 wallPosts = vk.wall().getById(serviceActor, idList).execute();
-                TimeUnit.MICROSECONDS.sleep(500);
+                //TimeUnit.MICROSECONDS.sleep(500);
+                Thread.sleep(1000);
                 return wallPosts;
             } catch (ClientException e) {
                 if (i == 3) throw e;
-                TimeUnit.SECONDS.sleep(1);
+                //TimeUnit.SECONDS.sleep(1);
+                Thread.sleep(1000);
             }
         }
         return null;

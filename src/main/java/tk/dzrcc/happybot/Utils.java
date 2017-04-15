@@ -39,4 +39,9 @@ public class Utils {
         groupId = Math.abs(groupId);
         return String.format(HREF_PATTERN, groupId, groupId, postId);
     }
+
+    public static boolean isLessThenHourAgo(Integer date) {
+        Long a  = (new Date().getTime() - ((long)date)*1000);
+        return  a < 59*60*1000;
+    }
 }
