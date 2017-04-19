@@ -30,6 +30,7 @@ import javax.annotation.PostConstruct;
 public class Launcher {
 
     private static Logger LOGGER = LoggerFactory.getLogger(Launcher.class);
+    private static final Integer UPDATE_TIMEOUT = 15;
 
     @Autowired
     private VKService vkService;
@@ -49,16 +50,16 @@ public class Launcher {
             LOGGER.info("Groups are loaded");
             TimeUnit.MICROSECONDS.sleep(500);
             loadNewPosts();
-            int updateCounter = 1;
+            int updateCounter = 0;
             while (true) {
 
-                TimeUnit.SECONDS.sleep(60);
-                if (updateCounter % 53 == 0) {
+                TimeUnit.SECONDS.sleep(UPDATE_TIMEOUT);
+                updateCounter++;
+                if (updateCounter % 53*60/UPDATE_TIMEOUT == 0) {
                     LOGGER.info("Updates count is {}", updateCounter);
                     loadNewPosts();
                 }
                 updateLoadedPosts();
-                updateCounter++;
             }
         } catch (InterruptedException | ApiException | ClientException | UpdaterException e) {
             e.printStackTrace();
@@ -114,10 +115,7 @@ public class Launcher {
                 List<WallpostFull> wallPosts = vkService.getLastPostsInGroup(groupId);
                 for (WallpostFull wallPost : wallPosts){
                     if (wallPost.getIsPinned() != null && wallPost.getIsPinned() == 1) continue;
-                    LOGGER.info("Date = {}", date.getTime());
-                    LOGGER.info("S Date = {}", wallPost.getDate());
                     Long division = date.getTime() - wallPost.getDate()*1000L;
-                    LOGGER.info("Divivsion = {}", division);
                     if (!postService.exists(wallPost.getId(), wallPost.getOwnerId()) && division < 59*60*1000) {
                         postService.savePostByWallPost(wallPost);
                         LOGGER.info("New post is added: {}", Utils.buildPostLink(wallPost));

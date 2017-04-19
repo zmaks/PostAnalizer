@@ -94,6 +94,7 @@ public class PostService {
         groupService.updateGroup(post.getGroup(), likes, reposts, views);
 
         if (mark > maxMark){
+            LOGGER.info("New max mark in hour {}: {}", hour, mark);
             postRepository.updateOldMarksInHour(hour, mark, maxMark);
             mark = maxMark;
         }

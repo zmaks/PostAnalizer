@@ -38,8 +38,8 @@ public class VKService {
 
     private TransportClient transportClient;
     private VkApiClient vk;
-    private static final String HREF_PATTERN = "https://vk.com/public%s?w=wall-%s_%s";
     private ServiceActor serviceActor = null;
+    private static final Integer POSTS_COUNT = 6;
 
     @PostConstruct
     private void initVk(){
@@ -71,7 +71,7 @@ public class VKService {
         for (int i = 0; i <= 3; i++) {
             try {
                 WallpostFull newPost = null;
-                GetResponse response = vk.wall().get(serviceActor).ownerId(groupId).count(8).execute();
+                GetResponse response = vk.wall().get(serviceActor).ownerId(groupId).count(POSTS_COUNT).execute();
                 List<WallpostFull> wallpostsFull = response.getItems();
                 if (wallpostsFull.isEmpty()) {
                     throw new UpdaterException("Error during loading posts. List is empty in group {}" + groupId);

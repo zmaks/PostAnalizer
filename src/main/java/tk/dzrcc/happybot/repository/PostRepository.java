@@ -22,8 +22,8 @@ public interface PostRepository extends CrudRepository<Post, Long> {
     List<Post> findNotUpdatedPosts();
 
     @Modifying
-    @Query(value = "UPDATE post SET mark = p2.new_mark FROM (SELECT mark* (?3) ::numeric/( (?2) as new_mark, id FROM post where hour = (?1) and mark is not null) p2 WHERE p2.id = post.id" , nativeQuery = true)
-    List<Post> updateOldMarksInHour(Integer hour, Integer mark, Integer maxMark);
+    @Query(value = "UPDATE post SET mark = p2.new_mark FROM (SELECT mark* (?3) *1.0/ (?2) as new_mark, id FROM post where hour = (?1) and mark is not null) p2 WHERE p2.id = post.id" , nativeQuery = true)
+    void updateOldMarksInHour(Integer hour, Integer mark, Integer maxMark);
 
     List<Post> findByMarkIsNull();
 
